@@ -1,0 +1,105 @@
+<div xmlns:nxu="http://nuxeo.org/nxweb/util"
+  xmlns:ui="http://java.sun.com/jsf/facelets"
+  xmlns:f="http://java.sun.com/jsf/core"
+  xmlns:a4j="http://richfaces.org/a4j"
+  xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:c="http://java.sun.com/jstl/core"
+  xmlns:nxh="http://nuxeo.org/nxweb/html"
+  xmlns:nxl="http://nuxeo.org/nxforms/layout"
+  xmlns:nxd="http://nuxeo.org/nxweb/document">
+
+  <h3>TCC Approval</h3>
+
+  <div class="content">
+                       	   
+    <h:form id="cm_custom_form" 
+    		styleClass="action_bar" 
+    		disableDoubleClickShield="true"
+			enctype="multipart/form-data" onsubmit="return saveChanges(this);">
+		<nxl:layout name="customForm@edit" mode="edit" value="#{currentDocument}" />
+		<!--nxl:widget name="documentEditButtons" mode="view" value="#{currentDocument}" /-->
+		 <h:commandButton
+    		value="Save"
+    		id="EDIT_CURRENT_DOCUMENT"
+    		styleClass="button">
+  		</h:commandButton>
+  	</h:form>
+ 
+
+	<script type="text/javascript">
+		//alert(ctx.currentDocument);
+		
+		function saveChanges(formRef) {			
+						
+			var formElements = formRef.elements;
+							
+			var approvedStatus = "";
+			var paidStatus = "false";
+			
+			if (formElements[1].checked) {
+				approvedStatus = formElements[1].value;
+			} else if (formElements[2].checked) {
+				approvedStatus = formElements[2].value;
+			} else if (formElements[3].checked) {
+				approvedStatus = formElements[3].value;
+			} else if (formElements[4].checked) {
+				approvedStatus = formElements[4].value;
+			}
+			
+			/*
+			if (formElements[8].checked) {
+				paidStatus = "true"
+			}
+			*/
+			
+			var properties = {};
+			
+			properties["payable:cost_code"] = formElements[5].value;
+			properties["payable:approved_amount"] = formElements[6].value;
+			properties["payable:approve_status"] = approvedStatus;
+			properties["payable:notes"] = formElements[7].value;
+			properties["payable:paid"] = paidStatus;
+			
+			var updateProperties = JSON.stringify(properties);
+			
+			//alert(updateProperties);
+			
+			/*
+			alert(formElements[1].name + " " + formElements[1].value + " " + );	
+			alert(formElements[2].name + " " + formElements[2].value + " " + formElements[2].checked);
+			alert(formElements[3].name + " " + formElements[3].value + " " + formElements[3].checked);
+			alert(formElements[4].name + " " + formElements[4].value + " " + formElements[4].checked);				
+			alert(formElements[5].name + " " + formElements[5].value);	
+			alert(formElements[6].name + " " + formElements[6].value);
+			alert(formElements[7].name + " " + formElements[7].value);
+			alert(formElements[8].name + " " + formElements[8].checked);
+			*/
+			
+			var saveRequestTemplate = '{"entity-type": "document","uid": "*docId*","repository": "default","type": "Payable","properties":*properties*}';
+			
+			var saveRequest = saveRequestTemplate.replace("*docId*", ctx.currentDocument).replace("*properties*", updateProperties);
+			
+			//alert(saveRequest);
+						
+			var updateRequestURL = 'api/v1/id/' + ctx.currentDocument;
+			
+			jQuery.ajax({
+				type        : 'PUT',
+				contentType: "application/json",
+				url         : updateRequestURL,
+				data        : saveRequest,
+				dataType    : 'json',
+                encode      : true
+			}).done(function(data) {
+                console.log(data); 
+				
+				jQuery("#fancybox-close").click();
+				
+				nextInfoView();
+            });
+
+			return false;
+		}
+	</script>	
+  </div>
+</div>
